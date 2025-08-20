@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
+#include <iostream>
 
 #include <describe/describe.hpp>
 #include <json/json.h>
@@ -128,6 +129,46 @@ T FromJson(const Json::Value &j)
   return r;
 }
 
+template<typename T,
+         std::enable_if_t<std::is_convertible_v<T, std::string>, int> = 0>
+Json::Value ToJson(const T &s)
+{
+  return Json::Value(std::string(s));
+}
+
+template<typename T,
+         std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+Json::Value ToJson(const T &s)
+{
+  if (std::is_unsigned_v<T>)
+    return Json::Value(static_cast<Json::Value::LargestUInt>(s));
+  return Json::Value(static_cast<Json::Value::LargestInt>(s));
+}
+
+template<typename V,
+         std::enable_if_t<is_std_vector_v<V>, int> = 0>
+Json::Value ToJson(const V &s)
+{
+  Json::Value v;
+  for (auto idx = 0; idx < s.size(); ++idx) {
+    v[idx] = ToJson(s[idx]);
+  }
+  return v;
+}
+
+template<typename T,
+         std::enable_if_t<describe::is_described_struct_v<T>, int> = 0>
+Json::Value ToJson(const T &s)
+{
+  Json::Value v;
+  describe::Get<T>::for_each([&](auto f) {
+    if constexpr (f.is_field) {
+      v[std::string(f.name)] = ToJson(f.get(s));
+    }
+  });
+  return v;
+}
+
 struct Object {
   std::vector<unsigned char> bytes;
   std::size_t size;
@@ -155,6 +196,8 @@ int main(int, char **)
   reader.parse(raw, json);
 
   Object o = FromJson<Object>(json);
+  Json::Value r = ToJson(o);
+  std::cout << r << std::endl;
 
   return 0;
 }
