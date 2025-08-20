@@ -18,6 +18,7 @@ Any impact on compilation is lazy (at the place of use)
 # Examples
 * [Boost.Json](./examples/boost.cpp): Basic integration example
 * [nlohmann_json](./examples/nlohmann.cpp): Attributes usage example
+* [jsoncpp](./examples/jsoncpp.cpp): JSONcpp basic usage
 * [LUA Bindings](https://github.com/cyanidle/glua): Auto-generate bindings with LUA
 * [RPC](https://github.com/cyanidle/rpcxx): Full-fledged JSON-RPC library with Deserialization based on describe
 
